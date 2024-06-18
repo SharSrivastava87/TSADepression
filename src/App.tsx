@@ -1,26 +1,36 @@
+// src/App.tsx
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { ThemeProvider, CssBaseline, Box } from '@mui/material';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Header from './components/Header';
+import MainContent from './components/MainContent';
+import theme from './theme';
+import GettingStarted from './components/GettingStarted';
+import Dashboard from './components/Dashboard';
+import Login from './components/Login'; // Import Login component
+import SignUp from './components/SignUp'; // Import SignUp component
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+const App = () => (
+  <ThemeProvider theme={theme}>
+    <CssBaseline />
+    <Router>
+      <Header />
+      <Box
+        sx={{
+          flex: 1,
+          overflowY: 'auto',
+        }}
+      >
+        <Routes>
+          <Route path="/" element={<MainContent />} />
+          <Route path="/getting-started" element={<GettingStarted />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/login" element={<Login />} /> {/* Add Login route */}
+          <Route path="/sign-up" element={<SignUp />} /> {/* Add SignUp route */}
+        </Routes>
+      </Box>
+    </Router>
+  </ThemeProvider>
+);
 
 export default App;

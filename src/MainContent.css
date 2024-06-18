@@ -1,0 +1,23 @@
+/* src/components/MainContent.css */
+.largeHeader {
+  font-weight: bold;
+  color: #FFFFFF;
+  font-size: 4rem; /* Adjust the size as needed */
+}
+/* src/components/MainContent.css */
+.coolButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.coolButton .MuiButton-root {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.coolButton .MuiButton-root:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
