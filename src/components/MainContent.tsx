@@ -14,7 +14,7 @@ const MainContent = () => {
   return (
     <Box
       sx={{
-        backgroundImage: 'url("/brainimg.jpg")',
+        backgroundImage: 'url("/wp2450701.jpg")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -34,13 +34,25 @@ const MainContent = () => {
             <p style={{ fontSize: '1.2rem', color: '#FFFFFF' }}>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus leo.
             </p>
-            <Button variant="contained" color="secondary" size="large" onClick={handleButtonClick}>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="large"
+              onClick={handleButtonClick}
+              sx={{ color: '#FFFFFF' }}
+            >
               Get Started
             </Button>
           </Grid>
           <Grid item xs={12} md={6}>
             <Box className="coolButton" onClick={handleButtonClick}>
-              <Button variant="contained" color="secondary" size="large" className="coolButton" sx={{ borderRadius: '50px' }}>
+              <Button
+                variant="contained"
+                color="secondary"
+                size="large"
+                className="coolButton"
+                sx={{ color: '#FFFFFF', borderRadius: '50px' }}
+              >
                 Click to Start
               </Button>
             </Box>

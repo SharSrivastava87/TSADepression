@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 
 const Header = () => (
     // Color Picker
-  <AppBar position="static" sx={{ backgroundColor: '#ff6d00' }}>
+  <AppBar position="static" sx={{ backgroundColor: '#169f7d' }}>
     <Toolbar>
       <Typography variant="h6" sx={{ flexGrow: 1, color: '#FFFFFF' }}>
         Logo
