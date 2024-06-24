@@ -136,7 +136,7 @@ Depression affects over 280 million people worldwide, with many unable to receiv
 1. Version One of Bespoke Model
 - This inital model followed our general outline of architecture but included shallow layers
 - We choose to start simple and build up inorder to scale to our hardware capabillities and see if a bespoke model can adequatley predict values
-- Folowing 50 epochs of training the best checkpoint from this iteration yeilded (Mean Absolute Error) MAE's of 4.571 and 3.712 with consistently tapering loss
+- Folowing 50 epochs of training, the best checkpoint from this iteration yeilded (Mean Absolute Error) MAE's of 4.571 and 3.712 with consistently tapering loss
 - However, this model was still fairly naive as it often predicted the mean with slight alterations
 
 
@@ -183,7 +183,7 @@ def get_compiled_model():
 
 2. Version Two of Bespoke Model
 - This second model included more dense and convelututions layers, and showed subsatinal improvemnt from the prior. We also added more trainable parameters.
-- Folowing 50 epochs of training the best checkpoint from this iteration yeilded MAE's of 1.620 and 2.918 with consistently tapering loss
+- Folowing 50 epochs of training, the best checkpoint from this iteration yeilded MAE's of 1.620 and 2.918 with consistently tapering loss
 - However this mdoel was a lot more computationaly exahustive and requried use to utilize more gpus for training (2 x NVIDIA 1080ti's)
 
 
@@ -244,7 +244,10 @@ def get_compiled_model():
 ```
 
 3. Beta Neuro Mind Model
--
+- This model is fairly simillar to the current model however the code is a bit redundant which we streamlined in our final iteration.
+- We changed the loss from MSE to MAE, changed our optimizer to RMSprop, and increased clipnorm to 5 and we found these alterations benifical to training
+- Folowing 85 epochs of training, the best checkpoint from this iteration yeilded MAE's of 0.252 and 0.216 with consistently tapering loss
+
 ```python
 from keras.layers import Conv3D, MaxPool3D, Flatten, Dense, BatchNormalization, Dropout, Input
 from keras.models import Model
@@ -316,6 +319,97 @@ def get_compiled_model(arou_kernal_reg=0.001, vale_kernal_reg=0.001, clipnorm=0)
     # Compile the model
     model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.001, clipnorm=clipnorm),
                   loss=['mae', 'mae'],
+                  loss_weights=[1, 1],
+                  metrics=['mae','mae'])
+
+    return model
+```
+
+4. Final Neuro Mind Model
+- This is our final model
+
+```python
+@tf.function
+def custom_loss(y_true, y_pred):
+    # Define the range of acceptable values
+    min_val = 0.0
+    max_val = 1.0
+
+    # Calculate the penalty for values outside of the range
+    penalty = tf.where(y_pred > max_val, y_pred - max_val, 0.0) + tf.where(y_pred < min_val, min_val - y_pred, 0.0)
+
+    # Calculate the mean absolute error loss
+    loss = tf.keras.losses.MeanAbsoluteError()
+
+    # Add the penalty to the mean absolute error loss
+    total_loss = loss.call(y_true=y_true,y_pred=y_pred) + penalty
+
+    return total_loss
+
+    
+# Lone Relu layer to remove brain mass
+def filter_layer(inputs):
+  return tf.keras.activations.relu(inputs)
+    
+def conv_block(x, filters, kernel_size, activation, kernel_initializer, kernel_regularizer):
+    x = Conv3D(filters=filters, kernel_size=kernel_size, activation=activation, kernel_initializer=kernel_initializer)(x)
+    x = BatchNormalization()(x)
+    return x
+
+def dense_block(x, units, activation, kernel_initializer, kernel_regularizer):
+    x = Dense(units=units, activation=activation, kernel_initializer=kernel_initializer, kernel_regularizer=kernel_regularizer)(x)
+    x = Dropout(0.2)(x)
+    return x
+
+def get_compiled_model(arou_kernal_reg=0.001, vale_kernal_reg=0.001, clipnorm=0):
+    inputs = Input((80, 80, 37, 1))
+    print(f"Input shape: {inputs.shape}")
+
+    # Filter Layer
+    x = filter_layer(inputs)
+    print(f"Filter layer shape: {x.shape}")
+
+    intil = 'he_normal'
+    # Convolutional layers with batch normalization
+    x = conv_block(x, filters=256, kernel_size=(3, 3, 3), activation='elu', kernel_initializer=intil, kernel_regularizer=None)
+    x = conv_block(x, filters=128, kernel_size=(3, 3, 3), activation='elu', kernel_initializer=intil, kernel_regularizer=None)
+    x = MaxPool3D(pool_size=(2, 2, 2))(x)
+    print(f"Max pool layer 1 shape: {x.shape}")
+    x = conv_block(x, filters=64, kernel_size=(3, 3, 3), activation='elu', kernel_initializer=intil, kernel_regularizer=None)
+    x = conv_block(x, filters=32, kernel_size=(3, 3, 3), activation='elu', kernel_initializer=intil, kernel_regularizer=None)
+    x = MaxPool3D(pool_size=(2, 2, 2))(x)
+    print(f"Max pool layer 2 shape: {x.shape}")
+    x = Flatten()(x)
+    print(f"Flatten layer shape: {x.shape}")
+
+    # Arousal Branch
+    arousal_x = dense_block(x, units=512, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(arou_kernal_reg))
+    arousal_x = dense_block(arousal_x, units=256, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(arou_kernal_reg))
+    arousal_x = dense_block(arousal_x, units=128, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(arou_kernal_reg))
+    arousal_x = dense_block(arousal_x, units=64, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(arou_kernal_reg))
+    arousal_x = dense_block(arousal_x, units=32, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(arou_kernal_reg))
+    arousal_x = dense_block(arousal_x, units=16, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(arou_kernal_reg))
+    arousal_x = dense_block(arousal_x, units=8, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(arou_kernal_reg))
+    out_arousal = Dense(units=1, activation='linear', name='arousal')(arousal_x)
+    print(f"Arousal output shape: {out_arousal.shape}")
+
+    # Valence Branch
+    valence_x = dense_block(x, units=512, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(vale_kernal_reg))
+    valence_x = dense_block(valence_x, units=256, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(vale_kernal_reg))
+    valence_x = dense_block(valence_x, units=128, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(vale_kernal_reg))
+    valence_x = dense_block(valence_x, units=64, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(vale_kernal_reg))
+    valence_x = dense_block(valence_x, units=32, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(vale_kernal_reg))
+    valence_x = dense_block(valence_x, units=16, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(vale_kernal_reg))
+    valence_x = dense_block(valence_x, units=8, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(vale_kernal_reg))
+    out_valence = Dense(units=1, activation='linear', name='valence')(valence_x)
+    print(f"Valence output shape: {out_valence.shape}")
+
+    # Define the model with multiple outputs
+    model = Model(inputs=inputs, outputs=[out_arousal, out_valence])
+
+    # Compile the model
+    model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.001, clipnorm=clipnorm),
+                  loss=[custom_loss, custom_loss],
                   loss_weights=[1, 1],
                   metrics=['mae','mae'])
 
