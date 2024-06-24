@@ -32,8 +32,109 @@ Depression affects over 280 million people worldwide, with many unable to receiv
 5. Real-time data processing pipeline implementation
 
 ## Iterations of Model 
-1. Version One of the Model
-2. 
+0. Proof of concept
+- First we tested the concept with a pretrained Py-Torch model
+- This model saw limited success and couldn't converage on adequate weights to predict valence and arousal but had a fair progression of loss showing potential in the model 
+- The MAE errors for valence and arousal were 5.313 and 4.124 respectivley following 50 epochs of training
+   ```python
+   import torch
+    import torch.nn as nn
+    import torch.optim as optim
+    from torchvision.models.video import r3d_18
+    from torch.utils.data import DataLoader, Dataset
+    import nibabel as nib
+    import numpy as np
+    import pandas as pd
+   
+   # Custom Dataset class for loading fMRI data
+    class FMRIDataset(Dataset):
+        def __init__(self, fmri_paths, event_paths, transform=None):
+            self.fmri_paths = fmri_paths
+            self.event_paths = event_paths
+            self.transform = transform
+        
+        def __len__(self):
+            return len(self.fmri_paths)
+        
+        def __getitem__(self, idx):
+            fmri_path = self.fmri_paths[idx]
+            event_path = self.event_paths[idx]
+            
+            fmri_img = nib.load(fmri_path).get_fdata()
+            event_df = pd.read_csv(event_path, sep='\t')
+            event_df = event_df.dropna().reset_index(drop=True)
+            
+            arousal = event_df['arousal']
+            arousal = (arousal - np.min(arousal)) / (np.max(arousal) - np.min(arousal))
+            valence = event_df['valence']
+            valence = (valence - np.min(valence)) / (np.max(valence) - np.min(valence))
+            labels = np.stack([arousal, valence], axis=1)
+            
+            fmri_img = torch.tensor(fmri_img, dtype=torch.float32)
+            labels = torch.tensor(labels, dtype=torch.float32)
+            
+            if self.transform:
+                fmri_img = self.transform(fmri_img)
+            
+            return fmri_img, labels
+    
+    # Define the 3D convolutional model with pre-trained ResNet
+    class Conv3DModel(nn.Module):
+        def __init__(self):
+            super(Conv3DModel, self).__init__()
+            self.base_model = r3d_18(pretrained=True)
+            self.base_model.fc = nn.Identity()  # Remove the original classifier
+            self.fc1 = nn.Linear(512, 1)  # For arousal
+            self.fc2 = nn.Linear(512, 1)  # For valence
+        
+        def forward(self, x):
+            features = self.base_model(x)
+            arousal = self.fc1(features)
+            valence = self.fc2(features)
+            return arousal, valence
+    
+    # Prepare the data
+    fmri_paths = [f"data/sub-{i:03d}/func/sub-{i:03d}_task-rest_bold.nii.gz" for i in range(1, 4)]
+    event_paths = [f"data/sub-{i:03d}/func/sub-{i:03d}_task-rest_events.tsv" for i in range(1, 4)]
+    
+    dataset = FMRIDataset(fmri_paths, event_paths)
+    dataloader = DataLoader(dataset, batch_size=2, shuffle=True)
+    
+    # Initialize the model, criterion, and optimizer
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = Conv3DModel().to(device)
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    
+    # Training loop
+    num_epochs = 10
+    
+    for epoch in range(num_epochs):
+        model.train()
+        running_loss = 0.0
+        for inputs, labels in dataloader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            
+            optimizer.zero_grad()
+            
+            outputs_arousal, outputs_valence = model(inputs)
+            loss_arousal = criterion(outputs_arousal.squeeze(), labels[:, 0])
+            loss_valence = criterion(outputs_valence.squeeze(), labels[:, 1])
+            loss = loss_arousal + loss_valence
+            
+            loss.backward()
+            optimizer.step()
+            
+            running_loss += loss.item()
+        
+        print(f'Epoch {epoch+1}/{num_epochs}, Loss: {running_loss/len(dataloader)}')
+    
+    print('Training complete')
+   ```
+2. Version One of the Model
+- This inital model followed our general outline of architecture but included very shallow layers
+- We choose to start simple and build up inorder to scale to our hardware capabillities
+- 
 ```python
 from keras.layers import Conv3D, MaxPool3D, Flatten, Dense, BatchNormalization, Dropout, Input
 from keras.models import Model
