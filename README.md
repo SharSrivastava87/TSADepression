@@ -183,8 +183,62 @@ def get_compiled_model():
 ```
 
 2. Version Two of Bespoke Model
-- This second model included more dense layers 
+- This second model included more dense and convelututions layers, and showed subsatinal improvemnt from the prior
+- Folowing 50 epochs of training the best checkpoint from this iteration yeilded MAE's of 1.620 and 2.918 with consistently tapering loss
+- However this mdoel was a lot more computationaly exahustive and requried use to utilize more gpus for training (2 x NVIDIA 1080ti's)
+
+
+
 ```python
+from keras.layers import Conv3D, MaxPool3D, Flatten, Dense, BatchNormalization, Dropout, Input
+from keras.models import Model
+from keras.regularizers import l2
+from keras.metrics import MeanAbsolutePercentageError
+from tensorflow.keras.callbacks import ModelCheckpoint
+
+def get_compiled_model():
+    inputs = Input((80, 80, 37, 1))
+        
+    # Convolutional layers with batch normalization
+    x = Conv3D(filters=128, kernel_size=(3, 3, 3), activation='elu')(x)
+    x = BatchNormalization()(x)
+    x = MaxPool3D(pool_size=(2, 2, 2))(x)
+    # x = Conv3D(filters=32, kernel_size=(3, 3, 3), activation='elu')(x)
+    # x = BatchNormalization()(x)
+    x = Flatten()(x)
+    
+    # Arousal Branch
+    arousal_x = Dense(units=64, activation='elu', kernel_regularizer=l2(0.01))(x)
+    arousal_x = Dropout(0.2)(arousal_x)
+    arousal_x = Dense(units=32, activation='elu', kernel_regularizer=l2(0.01))(arousal_x)
+    arousal_x = Dropout(0.2)(arousal_x)
+    arousal_x = Dense(units=16, activation='elu', kernel_regularizer=l2(0.01))(arousal_x)
+    arousal_x = Dropout(0.2)(arousal_x)
+    arousal_x = Dense(units=8, activation='elu', kernel_regularizer=l2(0.01))(arousal_x)
+    arousal_x = Dropout(0.2)(arousal_x)
+    arousal_x = Dense(units=4, activation='elu', kernel_regularizer=l2(0.01))(arousal_x)
+    out_arousal = Dense(units=1, activation='linear', name='norm_arousal')(arousal_x)
+    
+    # Valence Branch
+    valence_x = Dense(units=64, activation='elu', kernel_regularizer=l2(0.01))(x)
+    valence_x = Dropout(0.2)(valence_x)
+    valence_x = Dense(units=32, activation='elu', kernel_regularizer=l2(0.01))(valence_x)
+    valence_x = Dropout(0.2)(valence_x)
+    valence_x = Dense(units=8, activation='elu', kernel_regularizer=l2(0.01))(valence_x)
+    valence_x = Dropout(0.2)(valence_x)
+    valence_x = Dense(units=4, activation='elu', kernel_regularizer=l2(0.01))(valence_x)
+    out_valence = Dense(units=1, activation='linear', name='norm_valence')(valence_x)
+    
+    # Define the model with multiple outputs
+    model = Model(inputs=inputs, outputs=[out_arousal, out_valence])
+    
+    # Compile the model
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001, clipnorm=3),
+                  loss=['mse', 'mse'],
+                  loss_weights=[1, 1],
+                  metrics=[MeanAbsolutePercentageError(), MeanAbsolutePercentageError()])
+    
+    return model
 ```
 ## Impact
 
