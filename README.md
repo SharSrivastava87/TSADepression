@@ -242,8 +242,86 @@ def get_compiled_model():
     
     return model
 ```
+
 3. Beta Neuro Mind Model
 -
+```python
+from keras.layers import Conv3D, MaxPool3D, Flatten, Dense, BatchNormalization, Dropout, Input
+from keras.models import Model
+from keras.regularizers import l2
+from keras.metrics import MeanAbsolutePercentageError
+from tensorflow.keras.callbacks import ModelCheckpoint
+import tensorflow as tf
+
+# Lone Relu layer to remove brain mass
+def filter_layer(inputs):
+  return tf.keras.activations.relu(inputs)
+    
+def conv_block(x, filters, kernel_size, activation, kernel_initializer, kernel_regularizer):
+    x = Conv3D(filters=filters, kernel_size=kernel_size, activation=activation, kernel_initializer=kernel_initializer)(x)
+    x = BatchNormalization()(x)
+    return x
+
+def dense_block(x, units, activation, kernel_initializer, kernel_regularizer):
+    x = Dense(units=units, activation=activation, kernel_initializer=kernel_initializer, kernel_regularizer=kernel_regularizer)(x)
+    x = Dropout(0.2)(x)
+    return x
+
+def get_compiled_model(arou_kernal_reg=0.001, vale_kernal_reg=0.001, clipnorm=0):
+    inputs = Input((80, 80, 37, 1))
+    print(f"Input shape: {inputs.shape}")
+
+    # Filter Layer
+    x = filter_layer(inputs)
+    print(f"Filter layer shape: {x.shape}")
+
+    intil = 'he_normal'
+    # Convolutional layers with batch normalization
+    x = conv_block(x, filters=128, kernel_size=(3, 3, 3), activation='elu', kernel_initializer=intil, kernel_regularizer=None)
+    x = conv_block(x, filters=128, kernel_size=(3, 3, 3), activation='elu', kernel_initializer=intil, kernel_regularizer=None)
+    x = MaxPool3D(pool_size=(2, 2, 2))(x)
+    print(f"Max pool layer 1 shape: {x.shape}")
+    x = conv_block(x, filters=64, kernel_size=(3, 3, 3), activation='elu', kernel_initializer=intil, kernel_regularizer=None)
+    x = conv_block(x, filters=64, kernel_size=(3, 3, 3), activation='elu', kernel_initializer=intil, kernel_regularizer=None)
+    x = MaxPool3D(pool_size=(2, 2, 2))(x)
+    print(f"Max pool layer 2 shape: {x.shape}")
+    x = Flatten()(x)
+    print(f"Flatten layer shape: {x.shape}")
+
+    # Arousal Branch
+    arousal_x = dense_block(x, units=512, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(arou_kernal_reg))
+    arousal_x = dense_block(arousal_x, units=256, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(arou_kernal_reg))
+    arousal_x = dense_block(arousal_x, units=128, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(arou_kernal_reg))
+    arousal_x = dense_block(arousal_x, units=64, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(arou_kernal_reg))
+    arousal_x = dense_block(arousal_x, units=32, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(arou_kernal_reg))
+    arousal_x = dense_block(arousal_x, units=16, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(arou_kernal_reg))
+    arousal_x = dense_block(arousal_x, units=8, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(arou_kernal_reg))
+    out_arousal = Dense(units=1, activation='linear', name='arousal')(arousal_x)
+    print(f"Arousal output shape: {out_arousal.shape}")
+
+    # Valence Branch
+    valence_x = dense_block(x, units=512, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(vale_kernal_reg))
+    valence_x = dense_block(valence_x, units=256, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(vale_kernal_reg))
+    valence_x = dense_block(valence_x, units=128, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(vale_kernal_reg))
+    valence_x = dense_block(valence_x, units=64, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(vale_kernal_reg))
+    valence_x = dense_block(valence_x, units=32, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(vale_kernal_reg))
+    valence_x = dense_block(valence_x, units=16, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(vale_kernal_reg))
+    valence_x = dense_block(valence_x, units=8, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(vale_kernal_reg))
+    out_valence = Dense(units=1, activation='linear', name='valence')(valence_x)
+    print(f"Valence output shape: {out_valence.shape}")
+
+    # Define the model with multiple outputs
+    model = Model(inputs=inputs, outputs=[out_arousal, out_valence])
+
+    # Compile the model
+    model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.001, clipnorm=clipnorm),
+                  loss=['mae', 'mae'],
+                  loss_weights=[1, 1],
+                  metrics=['mae','mae'])
+
+    return model
+
+```
 ## Impact
 
 NeuroMind aims to improve treatment outcomes for individuals suffering from depression by offering precise and personalized neurofeedback. The project has the potential to revolutionize mental health care, making it more accessible, personalized, and effective.
