@@ -33,6 +33,7 @@ Depression affects over 280 million people worldwide, with many unable to receiv
 
 ## Iterations of Model 
 1. Version One of the Model
+2. 
 ```python
 from keras.layers import Conv3D, MaxPool3D, Flatten, Dense, BatchNormalization, Dropout, Input
 from keras.models import Model
@@ -82,7 +83,7 @@ def get_compiled_model():
                   metrics=[MeanAbsolutePercentageError(), MeanAbsolutePercentageError()])
     
     return model
-
+```
 ## Impact
 
 NeuroMind aims to improve treatment outcomes for individuals suffering from depression by offering precise and personalized neurofeedback. The project has the potential to revolutionize mental health care, making it more accessible, personalized, and effective.
