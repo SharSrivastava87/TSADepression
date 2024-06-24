@@ -1,46 +1,61 @@
-# Getting Started with Create React App
+# NeuroMind
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+NeuroMind is an AI-enhanced real-time fMRI neurofeedback system designed to combat clinical depression.
 
-## Available Scripts
+## Overview
 
-In the project directory, you can run:
+Depression affects over 280 million people worldwide, with many unable to receive the care they need due to barriers such as access, stigma, and unpredictable treatment outcomes. NeuroMind aims to address this pressing issue by combining cutting-edge technology with mental health care.
 
-### `npm start`
+## Features
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- AI-enhanced real-time fMRI neurofeedback (rt-fMRI-NF)
+- Personalized therapy option
+- Non-invasive treatment
+- Precise targeting of brain regions
+- Real-time feedback and adjustments
+- User-friendly interface for clinicians and patients
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Technology Stack
 
-### `npm test`
+- **Data Source**: OpenNeuro dataset
+- **Data Preprocessing**: Python, NiLearn, NiBabel
+- **AI Model**: 3D Convolutional Neural Network, Multi-layer Perceptron
+- **Backend**: Python, Django
+- **Frontend**: JavaScript, React
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Key Components
 
-### `npm run build`
+1. **Data Preprocessing**: Motion correction, spatial normalization, skull stripping, and smoothing
+2. **AI Model**: Split architecture for independent learning of valence and arousal
+3. **Real-time Data Processing Pipeline**: For live fMRI data during neurofeedback sessions
+4. **Feedback Mechanism**: Real-time adjustment of neurofeedback parameters
+5. **User Interface**: Displays real-time brain activation maps and AI recommendations
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Development Process
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. Data sourcing and preprocessing
+2. AI model development and training
+3. Web application development
+4. Extensive testing and validation
+5. Real-time data processing pipeline implementation
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Impact
 
-### `npm run eject`
+NeuroMind aims to improve treatment outcomes for individuals suffering from depression by offering precise and personalized neurofeedback. The project has the potential to revolutionize mental health care, making it more accessible, personalized, and effective.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## Future Plans
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- Expand to clinical trials
+- Bring the solution to a broader audience
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## Contributors
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+- Sanmay
+- Sharvay
+- Siddharth
 
-## Learn More
+## Get Involved
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+We're excited to share more about how NeuroMind can profoundly impact mental health care. For questions or collaboration opportunities, please contact the team.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Together, we can create a future where mental health care is accessible, deeply personalized, and effective for everyone.
