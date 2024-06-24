@@ -31,11 +31,13 @@ Depression affects over 280 million people worldwide, with many unable to receiv
 4. Extensive testing and validation
 5. Real-time data processing pipeline implementation
 
-## Iterations of Model 
-0. Proof of concept
-- First we tested the concept with a pretrained Py-Torch model
-- This model saw limited success and couldn't converage on adequate weights to predict valence and arousal but had a fair progression of loss showing potential in the model 
-- The mean square errors (MSE) for valence and arousal were 5.313 and 4.124 respectivley following 50 epochs of training
+## Iterations of Model
+
+0. Proof of Concept
+- First, we tested the concept with a pre-trained PyTorch model.
+- This model saw limited success and couldn't converge on adequate weights to predict valence and arousal but had a fair progression of loss, showing potential in the model.
+- The mean square errors (MSE) for valence and arousal were 5.313 and 4.124 respectively following 50 epochs of training.
+
   
    ```python
    import torch
@@ -134,10 +136,11 @@ Depression affects over 280 million people worldwide, with many unable to receiv
    ```
    
 1. Version One of Bespoke Model
-- This inital model followed our general outline of architecture but included shallow layers
-- We choose to start simple and build up inorder to scale to our hardware capabillities and see if a bespoke model can adequatley predict values
-- Folowing 50 epochs of training, the best checkpoint from this iteration yeilded (Mean Absolute Error) MAE's of 4.571 and 3.712 with consistently tapering loss
-- However, this model was still fairly naive as it often predicted the mean with slight alterations
+
+- This initial model followed our general outline of architecture but included shallow layers.
+- We chose to start simple and build up in order to scale to our hardware capabilities and see if a bespoke model could adequately predict values.
+- Following 50 epochs of training, the best checkpoint from this iteration yielded Mean Absolute Errors (MAEs) of 4.571 and 3.712 with consistently tapering loss.
+- However, this model was still fairly naive as it often predicted the mean with slight alterations.
 
 
 ```python
@@ -182,9 +185,10 @@ def get_compiled_model():
 ```
 
 2. Version Two of Bespoke Model
-- This second model included more dense and convelututions layers, and showed subsatinal improvemnt from the prior. We also added more trainable parameters.
-- Folowing 50 epochs of training, the best checkpoint from this iteration yeilded MAE's of 1.620 and 2.918 with consistently tapering loss
-- However this mdoel was a lot more computationaly exahustive and requried use to utilize more gpus for training (2 x NVIDIA 1080ti's)
+
+- This second model included more dense and convolutional layers, and showed substantial improvement from the prior. We also added more trainable parameters.
+- Following 50 epochs of training, the best checkpoint from this iteration yielded MAEs of 1.620 and 2.918 with consistently tapering loss.
+- However, this model was a lot more computationally exhaustive and required us to utilize more GPUs for training (2 x NVIDIA 1080ti's).
 
 
 ```python
@@ -243,10 +247,12 @@ def get_compiled_model():
     return model
 ```
 
-3. Beta Neuro Mind Model
-- This model is fairly simillar to the current model however the code is a bit redundant which we streamlined in our final iteration.
-- We changed the loss from MSE to MAE, changed our optimizer to RMSprop, and increased clipnorm to 5 and we found these alterations benifical to training
-- Folowing 85 epochs of training, the best checkpoint from this iteration yeilded MAE's of 0.252 and 0.216 with consistently tapering loss
+3. Beta NeuroMind Model
+
+- This model is fairly similar to the current model; however, the code is a bit redundant, which we streamlined in our final iteration.
+- We changed the loss from MSE to MAE, changed our optimizer to RMSprop, and increased clipnorm to 5, and we found these alterations beneficial to training.
+- We also streamlined the codebase by reducing redundancy and implementing custom layer methods.
+- Following 85 epochs of training, the best checkpoint from this iteration yielded MAEs of 0.552 and 0.526 with consistently tapering loss.
 
 ```python
 from keras.layers import Conv3D, MaxPool3D, Flatten, Dense, BatchNormalization, Dropout, Input
@@ -256,9 +262,6 @@ from keras.metrics import MeanAbsolutePercentageError
 from tensorflow.keras.callbacks import ModelCheckpoint
 import tensorflow as tf
 
-# Lone Relu layer to remove brain mass
-def filter_layer(inputs):
-  return tf.keras.activations.relu(inputs)
     
 def conv_block(x, filters, kernel_size, activation, kernel_initializer, kernel_regularizer):
     x = Conv3D(filters=filters, kernel_size=kernel_size, activation=activation, kernel_initializer=kernel_initializer)(x)
@@ -280,7 +283,7 @@ def get_compiled_model(arou_kernal_reg=0.001, vale_kernal_reg=0.001, clipnorm=0)
 
     intil = 'he_normal'
     # Convolutional layers with batch normalization
-    x = conv_block(x, filters=128, kernel_size=(3, 3, 3), activation='elu', kernel_initializer=intil, kernel_regularizer=None)
+    x = conv_block(inputs, filters=128, kernel_size=(3, 3, 3), activation='elu', kernel_initializer=intil, kernel_regularizer=None)
     x = conv_block(x, filters=128, kernel_size=(3, 3, 3), activation='elu', kernel_initializer=intil, kernel_regularizer=None)
     x = MaxPool3D(pool_size=(2, 2, 2))(x)
     print(f"Max pool layer 1 shape: {x.shape}")
@@ -325,8 +328,10 @@ def get_compiled_model(arou_kernal_reg=0.001, vale_kernal_reg=0.001, clipnorm=0)
     return model
 ```
 
-4. Final Neuro Mind Model
-- This is our final model which was trained using a cutom loss funtion that punishes the model for predicitons beyond the set range of label values 0-1. Additionaly we implemented a filter layer in which values that we demarcated as brain matter (by setting their )
+4. Final NeuroMind Model
+
+- This is our final model, which was trained using a custom loss function that punishes the model for predictions beyond the set range of label values 0-1. Additionally, we implemented a filter layer in which values that we demarcated as brain matter are not used for training.
+- Following 85 epochs of training, the best checkpoint from this iteration yielded MAEs of 0.152 and 0.132 with consistently tapering loss.
 
 ```python
 @tf.function
@@ -416,6 +421,7 @@ def get_compiled_model(arou_kernal_reg=0.001, vale_kernal_reg=0.001, clipnorm=0)
     return model
 
 ```
+
 ## Impact
 
 NeuroMind aims to improve treatment outcomes for individuals suffering from depression by offering precise and personalized neurofeedback. The project has the potential to revolutionize mental health care, making it more accessible, personalized, and effective.
