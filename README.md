@@ -35,7 +35,7 @@ Depression affects over 280 million people worldwide, with many unable to receiv
 0. Proof of concept
 - First we tested the concept with a pretrained Py-Torch model
 - This model saw limited success and couldn't converage on adequate weights to predict valence and arousal but had a fair progression of loss showing potential in the model 
-- The mean absolute errors (MAE) for valence and arousal were 5.313 and 4.124 respectivley following 50 epochs of training
+- The mean square errors (MSE) for valence and arousal were 5.313 and 4.124 respectivley following 50 epochs of training
   
    ```python
    import torch
@@ -136,7 +136,7 @@ Depression affects over 280 million people worldwide, with many unable to receiv
 1. Version One of Bespoke Model
 - This inital model followed our general outline of architecture but included shallow layers
 - We choose to start simple and build up inorder to scale to our hardware capabillities and see if a bespoke model can adequatley predict values
-- Folowing 50 epochs of training the best checkpoint from this iteration yeilded MAE's of 4.571 and 3.712 with consistently tapering loss
+- Folowing 50 epochs of training the best checkpoint from this iteration yeilded (Mean Absolute Error) MAE's of 4.571 and 3.712 with consistently tapering loss
 - However, this model was still fairly naive as it often predicted the mean with slight alterations
 
 
@@ -144,7 +144,6 @@ Depression affects over 280 million people worldwide, with many unable to receiv
 from keras.layers import Conv3D, MaxPool3D, Flatten, Dense, BatchNormalization, Dropout, Input
 from keras.models import Model
 from keras.regularizers import l2
-from keras.metrics import MeanAbsolutePercentageError
 from tensorflow.keras.callbacks import ModelCheckpoint
 
 def get_compiled_model():
@@ -177,23 +176,21 @@ def get_compiled_model():
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001, clipnorm=3),
                   loss=['mse', 'mse'],
                   loss_weights=[1, 1],
-                  metrics=[MeanAbsolutePercentageError(), MeanAbsolutePercentageError()])
+                  metrics=['mae', 'mae'])
     
     return model
 ```
 
 2. Version Two of Bespoke Model
-- This second model included more dense and convelututions layers, and showed subsatinal improvemnt from the prior
+- This second model included more dense and convelututions layers, and showed subsatinal improvemnt from the prior. We also added more trainable parameters.
 - Folowing 50 epochs of training the best checkpoint from this iteration yeilded MAE's of 1.620 and 2.918 with consistently tapering loss
 - However this mdoel was a lot more computationaly exahustive and requried use to utilize more gpus for training (2 x NVIDIA 1080ti's)
-
 
 
 ```python
 from keras.layers import Conv3D, MaxPool3D, Flatten, Dense, BatchNormalization, Dropout, Input
 from keras.models import Model
 from keras.regularizers import l2
-from keras.metrics import MeanAbsolutePercentageError
 from tensorflow.keras.callbacks import ModelCheckpoint
 
 def get_compiled_model():
@@ -203,8 +200,13 @@ def get_compiled_model():
     x = Conv3D(filters=128, kernel_size=(3, 3, 3), activation='elu')(x)
     x = BatchNormalization()(x)
     x = MaxPool3D(pool_size=(2, 2, 2))(x)
+    # x = Conv3D(filters=64, kernel_size=(3, 3, 3), activation='elu')(x)
+    # x = BatchNormalization()(x)
+    x = MaxPool3D(pool_size=(2, 2, 2))(x)
     # x = Conv3D(filters=32, kernel_size=(3, 3, 3), activation='elu')(x)
     # x = BatchNormalization()(x)
+    x = MaxPool3D(pool_size=(2, 2, 2))(x)
+
     x = Flatten()(x)
     
     # Arousal Branch
@@ -236,10 +238,12 @@ def get_compiled_model():
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001, clipnorm=3),
                   loss=['mse', 'mse'],
                   loss_weights=[1, 1],
-                  metrics=[MeanAbsolutePercentageError(), MeanAbsolutePercentageError()])
+                  metrics=['mae', 'mae'])
     
     return model
 ```
+3. Beta Neuro Mind Model
+-
 ## Impact
 
 NeuroMind aims to improve treatment outcomes for individuals suffering from depression by offering precise and personalized neurofeedback. The project has the potential to revolutionize mental health care, making it more accessible, personalized, and effective.
@@ -249,11 +253,6 @@ NeuroMind aims to improve treatment outcomes for individuals suffering from depr
 - Expand to clinical trials
 - Bring the solution to a broader audience
 
-## Contributors
-
-- Sanmay
-- Sharvay
-- Siddharth
 
 ## Get Involved
 
