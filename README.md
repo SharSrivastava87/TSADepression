@@ -35,7 +35,8 @@ Depression affects over 280 million people worldwide, with many unable to receiv
 0. Proof of concept
 - First we tested the concept with a pretrained Py-Torch model
 - This model saw limited success and couldn't converage on adequate weights to predict valence and arousal but had a fair progression of loss showing potential in the model 
-- The MAE errors for valence and arousal were 5.313 and 4.124 respectivley following 50 epochs of training
+- The mean absolute errors (MAE) for valence and arousal were 5.313 and 4.124 respectivley following 50 epochs of training
+  
    ```python
    import torch
     import torch.nn as nn
@@ -131,10 +132,14 @@ Depression affects over 280 million people worldwide, with many unable to receiv
     
     print('Training complete')
    ```
-2. Version One of the Model
-- This inital model followed our general outline of architecture but included very shallow layers
-- We choose to start simple and build up inorder to scale to our hardware capabillities
-- 
+   
+1. Version One of Bespoke Model
+- This inital model followed our general outline of architecture but included shallow layers
+- We choose to start simple and build up inorder to scale to our hardware capabillities and see if a bespoke model can adequatley predict values
+- Folowing 50 epochs of training the best checkpoint from this iteration yeilded MAE's of 4.571 and 3.712 with consistently tapering loss
+- However, this model was still fairly naive as it often predicted the mean with slight alterations
+
+
 ```python
 from keras.layers import Conv3D, MaxPool3D, Flatten, Dense, BatchNormalization, Dropout, Input
 from keras.models import Model
@@ -144,16 +149,11 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 
 def get_compiled_model():
     inputs = Input((80, 80, 37, 1))
-    
-    # Filter Layer
-    x = filter_layer(inputs)
-    
+        
     # Convolutional layers with batch normalization
     x = Conv3D(filters=128, kernel_size=(3, 3, 3), activation='elu')(x)
     x = BatchNormalization()(x)
     x = MaxPool3D(pool_size=(2, 2, 2))(x)
-    x = Conv3D(filters=64, kernel_size=(3, 3, 3), activation='elu')(x)
-    x = BatchNormalization()(x)
     # x = Conv3D(filters=32, kernel_size=(3, 3, 3), activation='elu')(x)
     # x = BatchNormalization()(x)
     x = Flatten()(x)
@@ -161,16 +161,12 @@ def get_compiled_model():
     # Arousal Branch
     arousal_x = Dense(units=16, activation='elu', kernel_regularizer=l2(0.01))(x)
     arousal_x = Dropout(0.2)(arousal_x)
-    arousal_x = Dense(units=8, activation='elu', kernel_regularizer=l2(0.01))(arousal_x)
-    arousal_x = Dropout(0.4)(arousal_x)
     arousal_x = Dense(units=4, activation='elu', kernel_regularizer=l2(0.01))(arousal_x)
     out_arousal = Dense(units=1, activation='linear', name='norm_arousal')(arousal_x)
     
     # Valence Branch
     valence_x = Dense(units=64, activation='elu', kernel_regularizer=l2(0.01))(x)
     valence_x = Dropout(0.2)(valence_x)
-    valence_x = Dense(units=8, activation='elu', kernel_regularizer=l2(0.01))(valence_x)
-    valence_x = Dropout(0.3)(valence_x)
     valence_x = Dense(units=4, activation='elu', kernel_regularizer=l2(0.01))(valence_x)
     out_valence = Dense(units=1, activation='linear', name='norm_valence')(valence_x)
     
@@ -178,13 +174,16 @@ def get_compiled_model():
     model = Model(inputs=inputs, outputs=[out_arousal, out_valence])
     
     # Compile the model
-    model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=0.001, clipnorm=3),
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001, clipnorm=3),
                   loss=['mse', 'mse'],
                   loss_weights=[1, 1],
                   metrics=[MeanAbsolutePercentageError(), MeanAbsolutePercentageError()])
     
     return model
 ```
+
+2. Version Two of Bespoke Model
+- This second mode
 ## Impact
 
 NeuroMind aims to improve treatment outcomes for individuals suffering from depression by offering precise and personalized neurofeedback. The project has the potential to revolutionize mental health care, making it more accessible, personalized, and effective.
