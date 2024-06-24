@@ -183,7 +183,9 @@ def get_compiled_model():
 ```
 
 2. Version Two of Bespoke Model
-- This second mode
+- This second model included more dense layers 
+```python
+```
 ## Impact
 
 NeuroMind aims to improve treatment outcomes for individuals suffering from depression by offering precise and personalized neurofeedback. The project has the potential to revolutionize mental health care, making it more accessible, personalized, and effective.
