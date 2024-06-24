@@ -326,7 +326,7 @@ def get_compiled_model(arou_kernal_reg=0.001, vale_kernal_reg=0.001, clipnorm=0)
 ```
 
 4. Final Neuro Mind Model
-- This is our final model
+- This is our final model which was trained using a cutom loss funtion that punishes the model for predicitons beyond the set range of label values 0-1. Additionaly we implemented a filter layer in which values that we demarcated as brain matter (by setting their )
 
 ```python
 @tf.function
