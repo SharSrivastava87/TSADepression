@@ -23,14 +23,6 @@ Depression affects over 280 million people worldwide, with many unable to receiv
 - **Backend**: Python, Django
 - **Frontend**: JavaScript, React
 
-## Key Components
-
-1. **Data Preprocessing**: Motion correction, spatial normalization, skull stripping, and smoothing
-2. **AI Model**: Split architecture for independent learning of valence and arousal
-3. **Real-time Data Processing Pipeline**: For live fMRI data during neurofeedback sessions
-4. **Feedback Mechanism**: Real-time adjustment of neurofeedback parameters
-5. **User Interface**: Displays real-time brain activation maps and AI recommendations
-
 ## Development Process
 
 1. Data sourcing and preprocessing
@@ -38,6 +30,58 @@ Depression affects over 280 million people worldwide, with many unable to receiv
 3. Web application development
 4. Extensive testing and validation
 5. Real-time data processing pipeline implementation
+
+## Iterations of Model 
+1. Version One of the Model
+```python
+from keras.layers import Conv3D, MaxPool3D, Flatten, Dense, BatchNormalization, Dropout, Input
+from keras.models import Model
+from keras.regularizers import l2
+from keras.metrics import MeanAbsolutePercentageError
+from tensorflow.keras.callbacks import ModelCheckpoint
+
+def get_compiled_model():
+    inputs = Input((80, 80, 37, 1))
+    
+    # Filter Layer
+    x = filter_layer(inputs)
+    
+    # Convolutional layers with batch normalization
+    x = Conv3D(filters=128, kernel_size=(3, 3, 3), activation='elu')(x)
+    x = BatchNormalization()(x)
+    x = MaxPool3D(pool_size=(2, 2, 2))(x)
+    x = Conv3D(filters=64, kernel_size=(3, 3, 3), activation='elu')(x)
+    x = BatchNormalization()(x)
+    # x = Conv3D(filters=32, kernel_size=(3, 3, 3), activation='elu')(x)
+    # x = BatchNormalization()(x)
+    x = Flatten()(x)
+    
+    # Arousal Branch
+    arousal_x = Dense(units=16, activation='elu', kernel_regularizer=l2(0.01))(x)
+    arousal_x = Dropout(0.2)(arousal_x)
+    arousal_x = Dense(units=8, activation='elu', kernel_regularizer=l2(0.01))(arousal_x)
+    arousal_x = Dropout(0.4)(arousal_x)
+    arousal_x = Dense(units=4, activation='elu', kernel_regularizer=l2(0.01))(arousal_x)
+    out_arousal = Dense(units=1, activation='linear', name='norm_arousal')(arousal_x)
+    
+    # Valence Branch
+    valence_x = Dense(units=64, activation='elu', kernel_regularizer=l2(0.01))(x)
+    valence_x = Dropout(0.2)(valence_x)
+    valence_x = Dense(units=8, activation='elu', kernel_regularizer=l2(0.01))(valence_x)
+    valence_x = Dropout(0.3)(valence_x)
+    valence_x = Dense(units=4, activation='elu', kernel_regularizer=l2(0.01))(valence_x)
+    out_valence = Dense(units=1, activation='linear', name='norm_valence')(valence_x)
+    
+    # Define the model with multiple outputs
+    model = Model(inputs=inputs, outputs=[out_arousal, out_valence])
+    
+    # Compile the model
+    model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=0.001, clipnorm=3),
+                  loss=['mse', 'mse'],
+                  loss_weights=[1, 1],
+                  metrics=[MeanAbsolutePercentageError(), MeanAbsolutePercentageError()])
+    
+    return model
 
 ## Impact
 
