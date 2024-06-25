@@ -369,24 +369,19 @@ def dense_block(x, units, activation, kernel_initializer, kernel_regularizer):
 
 def get_compiled_model(arou_kernal_reg=0.001, vale_kernal_reg=0.001, clipnorm=0):
     inputs = Input((80, 80, 37, 1))
-    print(f"Input shape: {inputs.shape}")
 
     # Filter Layer
-    x = filter_layer(inputs)
-    print(f"Filter layer shape: {x.shape}")
+    x = filter_layer(input
 
     intil = 'he_normal'
     # Convolutional layers with batch normalization
     x = conv_block(x, filters=256, kernel_size=(3, 3, 3), activation='elu', kernel_initializer=intil, kernel_regularizer=None)
     x = conv_block(x, filters=128, kernel_size=(3, 3, 3), activation='elu', kernel_initializer=intil, kernel_regularizer=None)
     x = MaxPool3D(pool_size=(2, 2, 2))(x)
-    print(f"Max pool layer 1 shape: {x.shape}")
     x = conv_block(x, filters=64, kernel_size=(3, 3, 3), activation='elu', kernel_initializer=intil, kernel_regularizer=None)
     x = conv_block(x, filters=32, kernel_size=(3, 3, 3), activation='elu', kernel_initializer=intil, kernel_regularizer=None)
     x = MaxPool3D(pool_size=(2, 2, 2))(x)
-    print(f"Max pool layer 2 shape: {x.shape}")
     x = Flatten()(x)
-    print(f"Flatten layer shape: {x.shape}")
 
     # Arousal Branch
     arousal_x = dense_block(x, units=512, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(arou_kernal_reg))
@@ -397,7 +392,6 @@ def get_compiled_model(arou_kernal_reg=0.001, vale_kernal_reg=0.001, clipnorm=0)
     arousal_x = dense_block(arousal_x, units=16, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(arou_kernal_reg))
     arousal_x = dense_block(arousal_x, units=8, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(arou_kernal_reg))
     out_arousal = Dense(units=1, activation='linear', name='arousal')(arousal_x)
-    print(f"Arousal output shape: {out_arousal.shape}")
 
     # Valence Branch
     valence_x = dense_block(x, units=512, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(vale_kernal_reg))
@@ -408,7 +402,6 @@ def get_compiled_model(arou_kernal_reg=0.001, vale_kernal_reg=0.001, clipnorm=0)
     valence_x = dense_block(valence_x, units=16, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(vale_kernal_reg))
     valence_x = dense_block(valence_x, units=8, activation='elu', kernel_initializer=intil, kernel_regularizer=l2(vale_kernal_reg))
     out_valence = Dense(units=1, activation='linear', name='valence')(valence_x)
-    print(f"Valence output shape: {out_valence.shape}")
 
     # Define the model with multiple outputs
     model = Model(inputs=inputs, outputs=[out_arousal, out_valence])
@@ -494,11 +487,16 @@ def sample_multiple_subjects(subject_number_array):
 - Developed a web application using Django and React.
 - The web app provides a user-friendly interface for clinicians to monitor patient progress and adjust treatment parameters in real-time.
 
+## Backend
 ```python
     def add_backend_code():
         pass
 ```
-
+## Frontend
+```python
+    def add_frontend_code():
+        pass
+```
 ## Future Work
 
 - **Longitudinal Studies**: Conduct longitudinal studies to evaluate the long-term effectiveness of the AI-enhanced RT-fMRI-NF.
