@@ -487,16 +487,6 @@ def sample_multiple_subjects(subject_number_array):
 - Developed a web application using Django and React.
 - The web app provides a user-friendly interface for clinicians to monitor patient progress and adjust treatment parameters in real-time.
 
-## Backend
-```python
-    def add_backend_code():
-        pass
-```
-## Frontend
-```python
-    def add_frontend_code():
-        pass
-```
 ## Future Work
 
 - **Longitudinal Studies**: Conduct longitudinal studies to evaluate the long-term effectiveness of the AI-enhanced RT-fMRI-NF.
