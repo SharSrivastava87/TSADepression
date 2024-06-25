@@ -448,7 +448,7 @@ def format_data(fmri_path, event_path, buffer=15): # 13 resulted in best
     labels =  tf.convert_to_tensor(pd.concat((arousal,valence), axis=1), dtype=tf.float32)
 
     # Dropping NA from labels in features
-    event_df['onset'] =(event_df['onset']/2 + buffer).round().astype('int16') # this 13 is arbitrary we should email the ds people to ask some stuff
+    event_df['onset'] =(event_df['onset']/2 + buffer).round().astype('int16')
     norm_fmri_imgs = normalize_features(fmri_imgs)
     features = norm_fmri_imgs.get_fdata()
     features = features[:,:,:, event_df['onset']]
